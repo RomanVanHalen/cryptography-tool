@@ -8,7 +8,6 @@ import os
 import time
 from crypto.rsa_handler import RSAHandler
 
-
 class KeyGenerationTab:
     def __init__(self, parent, colors):
         self.parent = parent
@@ -25,79 +24,126 @@ class KeyGenerationTab:
         """Create the key generation tab interface"""
         self.frame = ttk.Frame(self.parent)
 
+        # Main container with better spacing
+        main_container = ttk.Frame(self.frame)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
         # Key generation settings
-        settings_frame = ttk.LabelFrame(self.frame, text="RSA Key Generation Settings", padding="15")
-        settings_frame.pack(fill=tk.X, padx=10, pady=10)
+        settings_frame = ttk.LabelFrame(main_container, text="RSA Key Generation Settings", padding="15")
+        settings_frame.pack(fill=tk.X, pady=(0, 10))
 
-        # Key size selection
-        ttk.Label(settings_frame, text="Key Size:").grid(row=0, column=0, sticky=tk.W, pady=5)
-        self.key_size_var = tk.StringVar(value="2048")
+        # Key size selection - USING PACK
         key_size_frame = ttk.Frame(settings_frame)
-        key_size_frame.grid(row=0, column=1, sticky=tk.W, padx=5)
-        ttk.Radiobutton(key_size_frame, text="1024-bit", variable=self.key_size_var,
-                        value="1024").pack(side=tk.LEFT)
-        ttk.Radiobutton(key_size_frame, text="2048-bit", variable=self.key_size_var,
-                        value="2048").pack(side=tk.LEFT, padx=10)
-        ttk.Radiobutton(key_size_frame, text="4096-bit", variable=self.key_size_var,
-                        value="4096").pack(side=tk.LEFT)
+        key_size_frame.pack(fill=tk.X, pady=5)
 
-        # Public exponent
-        ttk.Label(settings_frame, text="Public Exponent:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        ttk.Label(key_size_frame, text="Key Size:").pack(side=tk.LEFT)
+        key_size_radio_frame = ttk.Frame(key_size_frame)
+        key_size_radio_frame.pack(side=tk.LEFT, padx=10)
+
+        self.key_size_var = tk.StringVar(value="2048")
+        ttk.Radiobutton(key_size_radio_frame, text="1024-bit", variable=self.key_size_var,
+                       value="1024").pack(side=tk.LEFT)
+        ttk.Radiobutton(key_size_radio_frame, text="2048-bit", variable=self.key_size_var,
+                       value="2048").pack(side=tk.LEFT, padx=10)
+        ttk.Radiobutton(key_size_radio_frame, text="4096-bit", variable=self.key_size_var,
+                       value="4096").pack(side=tk.LEFT)
+
+        # Public exponent - USING PACK
+        public_exp_frame = ttk.Frame(settings_frame)
+        public_exp_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(public_exp_frame, text="Public Exponent:").pack(side=tk.LEFT)
         self.public_exp_var = tk.StringVar(value="65537")
-        ttk.Entry(settings_frame, textvariable=self.public_exp_var, width=15).grid(row=1, column=1, sticky=tk.W, padx=5)
+        ttk.Entry(public_exp_frame, textvariable=self.public_exp_var, width=15).pack(side=tk.LEFT, padx=10)
 
-        # Key ID (optional)
-        ttk.Label(settings_frame, text="Key ID (optional):").grid(row=2, column=0, sticky=tk.W, pady=5)
+        # Key ID (optional) - USING PACK
+        key_id_frame = ttk.Frame(settings_frame)
+        key_id_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(key_id_frame, text="Key ID (optional):").pack(side=tk.LEFT)
         self.key_id_var = tk.StringVar()
-        ttk.Entry(settings_frame, textvariable=self.key_id_var, width=30).grid(row=2, column=1, sticky=tk.W, padx=5)
+        ttk.Entry(key_id_frame, textvariable=self.key_id_var, width=30).pack(side=tk.LEFT, padx=10)
 
         # Action buttons
         button_frame = ttk.Frame(settings_frame)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        ttk.Button(button_frame, text="Generate RSA Keys", command=self.generate_keys,
+        button_frame.pack(fill=tk.X, pady=10)
+        ttk.Button(button_frame, text="🔑 Generate RSA Keys", command=self.generate_keys,
                    style='Accent.TButton').pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Clear", command=self.clear).pack(side=tk.LEFT, padx=5)
 
         # Results section
-        results_frame = ttk.LabelFrame(self.frame, text="Generated RSA Keys", padding="15")
-        results_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        results_frame = ttk.LabelFrame(main_container, text="Generated RSA Keys", padding="15")
+        results_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Public key
-        ttk.Label(results_frame, text="Public Key:").pack(anchor=tk.W)
-        self.public_key_text = scrolledtext.ScrolledText(results_frame, height=6, width=80)
-        self.public_key_text.pack(fill=tk.X, pady=5)
+        # Performance metrics - FIXED: Reduced height
+        metrics_frame = ttk.LabelFrame(results_frame, text="Key Generation Metrics", padding="10")
+        metrics_frame.pack(fill=tk.X, pady=(0, 10))
 
-        # Public key actions
-        pub_key_actions = ttk.Frame(results_frame)
-        pub_key_actions.pack(fill=tk.X, pady=5)
-        self.copy_pub_btn = ttk.Button(pub_key_actions, text="Copy Public Key",
-                                       command=self.copy_public_key, state='disabled')
-        self.copy_pub_btn.pack(side=tk.LEFT, padx=5)
-        self.save_pub_btn = ttk.Button(pub_key_actions, text="Save Public Key",
-                                       command=self.save_public_key, state='disabled')
-        self.save_pub_btn.pack(side=tk.LEFT, padx=5)
+        self.metrics_text = scrolledtext.ScrolledText(metrics_frame, height=3, width=80)  # Reduced height
+        self.metrics_text.pack(fill=tk.X)
 
-        # Private key
-        ttk.Label(results_frame, text="Private Key:").pack(anchor=tk.W, pady=(10, 0))
-        self.private_key_text = scrolledtext.ScrolledText(results_frame, height=8, width=80)
-        self.private_key_text.pack(fill=tk.X, pady=5)
+        # Keys container for side-by-side layout
+        keys_container = ttk.Frame(results_frame)
+        keys_container.pack(fill=tk.BOTH, expand=True, pady=5)
 
-        # Private key actions
-        priv_key_actions = ttk.Frame(results_frame)
-        priv_key_actions.pack(fill=tk.X, pady=5)
-        self.copy_priv_btn = ttk.Button(priv_key_actions, text="Copy Private Key",
-                                        command=self.copy_private_key, state='disabled')
-        self.copy_priv_btn.pack(side=tk.LEFT, padx=5)
-        self.save_priv_btn = ttk.Button(priv_key_actions, text="Save Private Key",
-                                        command=self.save_private_key, state='disabled')
-        self.save_priv_btn.pack(side=tk.LEFT, padx=5)
+        # Public key section - LEFT SIDE
+        public_key_frame = ttk.LabelFrame(keys_container, text="Public Key", padding="10")
+        public_key_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
-        # Key information
-        self.info_frame = ttk.LabelFrame(results_frame, text="Key Information", padding="10")
-        self.info_frame.pack(fill=tk.X, pady=10)
+        # Public key header with copy button
+        pub_key_header = ttk.Frame(public_key_frame)
+        pub_key_header.pack(fill=tk.X, pady=(0, 5))
 
-        self.info_text = scrolledtext.ScrolledText(self.info_frame, height=4, width=80)
-        self.info_text.pack(fill=tk.X)
+        ttk.Label(pub_key_header, text="PEM Format:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT)
+
+        pub_key_actions = ttk.Frame(pub_key_header)
+        pub_key_actions.pack(side=tk.RIGHT)
+
+        self.copy_pub_btn = ttk.Button(pub_key_actions, text="📋 Copy",
+                                      command=self.copy_public_key, state='disabled',
+                                      width=10)
+        self.copy_pub_btn.pack(side=tk.LEFT, padx=2)
+        self.save_pub_btn = ttk.Button(pub_key_actions, text="💾 Save",
+                                      command=self.save_public_key, state='disabled',
+                                      width=10)
+        self.save_pub_btn.pack(side=tk.LEFT, padx=2)
+
+        # Public key text area
+        self.public_key_text = scrolledtext.ScrolledText(public_key_frame, height=10, width=40)
+        self.public_key_text.pack(fill=tk.BOTH, expand=True)
+
+        # Private key section - RIGHT SIDE
+        private_key_frame = ttk.LabelFrame(keys_container, text="Private Key", padding="10")
+        private_key_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(5, 0))
+
+        # Private key header with copy button
+        priv_key_header = ttk.Frame(private_key_frame)
+        priv_key_header.pack(fill=tk.X, pady=(0, 5))
+
+        ttk.Label(priv_key_header, text="PEM Format:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT)
+
+        priv_key_actions = ttk.Frame(priv_key_header)
+        priv_key_actions.pack(side=tk.RIGHT)
+
+        self.copy_priv_btn = ttk.Button(priv_key_actions, text="📋 Copy",
+                                       command=self.copy_private_key, state='disabled',
+                                       width=10)
+        self.copy_priv_btn.pack(side=tk.LEFT, padx=2)
+        self.save_priv_btn = ttk.Button(priv_key_actions, text="💾 Save",
+                                       command=self.save_private_key, state='disabled',
+                                       width=10)
+        self.save_priv_btn.pack(side=tk.LEFT, padx=2)
+
+        # Private key text area
+        self.private_key_text = scrolledtext.ScrolledText(private_key_frame, height=10, width=40)
+        self.private_key_text.pack(fill=tk.BOTH, expand=True)
+
+        # Additional key info at bottom
+        key_info_frame = ttk.LabelFrame(results_frame, text="Key Information", padding="10")
+        key_info_frame.pack(fill=tk.X, pady=(10, 0))
+
+        self.key_info_text = scrolledtext.ScrolledText(key_info_frame, height=3, width=80)
+        self.key_info_text.pack(fill=tk.X)
 
     def generate_keys(self):
         """Generate RSA key pair"""
@@ -118,18 +164,28 @@ class KeyGenerationTab:
             # Display keys
             self.public_key_text.delete(1.0, tk.END)
             self.public_key_text.insert(tk.END, keys['public_key_pem'])
+            self.public_key_text.see(1.0)  # Auto-scroll to top
 
             self.private_key_text.delete(1.0, tk.END)
             self.private_key_text.insert(tk.END, keys['private_key_pem'])
+            self.private_key_text.see(1.0)  # Auto-scroll to top
+
+            # Display performance metrics
+            self.metrics_text.delete(1.0, tk.END)
+            self.metrics_text.insert(tk.END, "🔑 KEY GENERATION METRICS\n")
+            self.metrics_text.insert(tk.END, "=" * 40 + "\n")
+            self.metrics_text.insert(tk.END, f"Key ID: {key_id}\n")
+            self.metrics_text.insert(tk.END, f"Key Size: {key_size} bits\n")
+            self.metrics_text.insert(tk.END, f"Public Exponent: {public_exp}\n")
+            self.metrics_text.insert(tk.END, f"Generation Time: {generation_time:.3f} seconds\n")
 
             # Display key information
-            self.info_text.delete(1.0, tk.END)
-            self.info_text.insert(tk.END, f"Key ID: {key_id}\n")
-            self.info_text.insert(tk.END, f"Key Size: {key_size} bits\n")
-            self.info_text.insert(tk.END, f"Public Exponent: {public_exp}\n")
-            self.info_text.insert(tk.END, f"Generation Time: {generation_time:.2f} seconds\n")
-            self.info_text.insert(tk.END, f"Modulus (n): {keys['modulus_hex'][:64]}...\n")
-            self.info_text.insert(tk.END, f"Public Exponent (e): {keys['public_exponent']}\n")
+            self.key_info_text.delete(1.0, tk.END)
+            self.key_info_text.insert(tk.END, "🔍 KEY INFORMATION\n")
+            self.key_info_text.insert(tk.END, "=" * 40 + "\n")
+            self.key_info_text.insert(tk.END, f"Modulus (first 64 chars): {keys['modulus_hex'][:64]}...\n")
+            self.key_info_text.insert(tk.END, f"Public Exponent (e): {keys['public_exponent_value']}\n")
+            self.key_info_text.insert(tk.END, f"Modulus Bit Length: {keys['key_size']} bits\n")
 
             self.last_keys = keys
             self.key_id = key_id
@@ -141,7 +197,7 @@ class KeyGenerationTab:
             self.save_priv_btn.config(state='normal')
 
             if self.status_var:
-                self.status_var.set("RSA keys generated successfully")
+                self.status_var.set(f"RSA keys generated in {generation_time:.3f} seconds")
 
         except Exception as e:
             messagebox.showerror("Error", f"Key generation failed: {str(e)}")
@@ -206,7 +262,8 @@ class KeyGenerationTab:
         """Clear all outputs"""
         self.public_key_text.delete(1.0, tk.END)
         self.private_key_text.delete(1.0, tk.END)
-        self.info_text.delete(1.0, tk.END)
+        self.metrics_text.delete(1.0, tk.END)
+        self.key_info_text.delete(1.0, tk.END)
         self.copy_pub_btn.config(state='disabled')
         self.save_pub_btn.config(state='disabled')
         self.copy_priv_btn.config(state='disabled')

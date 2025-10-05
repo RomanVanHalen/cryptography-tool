@@ -8,7 +8,6 @@ from .key_generation_tab import KeyGenerationTab
 from .encryption_tab import RSAEncryptionTab
 from .decryption_tab import RSADecryptionTab
 
-
 class RSACryptoTool:
     def __init__(self, root):
         self.root = root

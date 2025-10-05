@@ -157,67 +157,6 @@ class RSAHandler:
         # For OAEP with SHA-256: padding = 2 * hash_size + 2 = 2*32 + 2 = 66 bytes
         return (key_size // 8) - 66
 
-    def sign_data(self, data, private_key_pem):
-        """
-        Sign data using RSA private key
-
-        Args:
-            data (bytes): Data to sign
-            private_key_pem (str): Private key in PEM format
-
-        Returns:
-            str: Base64 encoded signature
-        """
-        private_key = serialization.load_pem_private_key(
-            private_key_pem.encode('utf-8'),
-            password=None,
-            backend=default_backend()
-        )
-
-        signature = private_key.sign(
-            data,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
-
-        return base64.b64encode(signature).decode('utf-8')
-
-    def verify_signature(self, data, signature_b64, public_key_pem):
-        """
-        Verify signature using RSA public key
-
-        Args:
-            data (bytes): Original data
-            signature_b64 (str): Base64 encoded signature
-            public_key_pem (str): Public key in PEM format
-
-        Returns:
-            bool: True if signature is valid
-        """
-        public_key = serialization.load_pem_public_key(
-            public_key_pem.encode('utf-8'),
-            backend=default_backend()
-        )
-
-        signature = base64.b64decode(signature_b64)
-
-        try:
-            public_key.verify(
-                signature,
-                data,
-                padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH
-                ),
-                hashes.SHA256()
-            )
-            return True
-        except:
-            return False
-
     def get_key_info(self, key_pem):
         """
         Get information about RSA key

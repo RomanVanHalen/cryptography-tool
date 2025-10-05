@@ -1,4 +1,8 @@
-# run_rsa.py
+#!/usr/bin/env python3
+"""
+RSA Crypto Tool - Launcher
+"""
+
 import sys
 import os
 
